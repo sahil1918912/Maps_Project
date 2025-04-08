@@ -3,10 +3,8 @@ package com.ahmedabad.mapsproject.presentation.ui.screens.add_location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ahmedabad.mapsproject.domain.model.LocationModel
-import com.ahmedabad.mapsproject.domain.usecase.AddLocationUseCase
 import com.ahmedabad.mapsproject.domain.usecase.GetPlaceDetailsUseCase
 import com.ahmedabad.mapsproject.domain.usecase.SearchPlacesUseCase
-import com.ahmedabad.mapsproject.domain.usecase.UpdateLocationUseCase
 import com.ahmedabad.mapsproject.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,8 +16,6 @@ import javax.inject.Inject
 class AddLocationViewModel @Inject constructor(
     private val searchPlacesUseCase: SearchPlacesUseCase,
     private val getPlaceDetailsUseCase: GetPlaceDetailsUseCase,
-    private val addLocationUseCase: AddLocationUseCase,
-    private val updateLocationUseCase: UpdateLocationUseCase
 ) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
@@ -61,28 +57,12 @@ class AddLocationViewModel @Inject constructor(
                 is Resource.Success -> {
                     _selectedLocation.value = result.data
                 }
+
                 is Resource.Error -> {
-                    // Handle error
+
                 }
+
                 else -> {}
-            }
-        }
-    }
-
-    fun saveLocation(existingId: Int = 0) {
-        viewModelScope.launch {
-            _selectedLocation.value?.let { location ->
-                val locationToSave = location.copy(
-                    id = existingId,
-                    address = location.address.ifEmpty { "No address available" }
-                )
-
-                if (existingId == 0) {
-                    addLocationUseCase(locationToSave)
-                } else {
-                    updateLocationUseCase(locationToSave)
-                }
-                _saveSuccess.value = true
             }
         }
     }

@@ -33,28 +33,42 @@ class MapViewModel @Inject constructor(
     private fun loadLocations() {
         viewModelScope.launch {
             getAllLocationsUseCase().collectLatest { locations ->
-                val sortedLocations = sortLocations(locations)
-                _locations.value = sortedLocations
+                val optimizedRoute = calculateOptimizedRoute(locations)
+                _locations.value = optimizedRoute
 
-                if (sortedLocations.size >= 2) {
-                    getRoutePath(sortedLocations)
+                if (optimizedRoute.size >= 2) {
+                    getRoutePath(optimizedRoute)
                 }
             }
         }
     }
 
-    private fun sortLocations(locations: List<LocationModel>): List<LocationModel> {
-        val primary = locations.firstOrNull { it.isPrimary } ?: return locations
 
-        return locations.sortedBy { location ->
-            if (location.isPrimary) Double.MIN_VALUE
-            else DistanceCalculator.calculateDistance(
-                primary.latitude,
-                primary.longitude,
-                location.latitude,
-                location.longitude
-            )
+    private fun calculateOptimizedRoute(locations: List<LocationModel>): List<LocationModel> {
+        if (locations.isEmpty()) return emptyList()
+
+
+        val primary = locations.firstOrNull { it.isPrimary } ?: locations.first()
+
+        val result = mutableListOf<LocationModel>()
+        result.add(primary)
+
+        val remainingLocations = locations.filter { it.id != primary.id }.toMutableList()
+
+        while (remainingLocations.isNotEmpty()) {
+            val lastLocation = result.last()
+            val closestLocation = remainingLocations.minByOrNull { location ->
+                DistanceCalculator.calculateDistance(
+                    lastLocation.latitude, lastLocation.longitude,
+                    location.latitude, location.longitude
+                )
+            } ?: break
+
+            result.add(closestLocation)
+            remainingLocations.remove(closestLocation)
         }
+
+        return result
     }
 
     private fun getRoutePath(locations: List<LocationModel>) {
@@ -64,7 +78,7 @@ class MapViewModel @Inject constructor(
                     _routePolyline.value = result.data
                 }
                 is Resource.Error -> {
-                    // Handle error
+
                 }
                 else -> {}
             }

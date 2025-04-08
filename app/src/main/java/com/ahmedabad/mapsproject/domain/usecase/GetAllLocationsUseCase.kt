@@ -9,6 +9,6 @@ class GetAllLocationsUseCase @Inject constructor(
     private val repository: LocationRepository,
 ) {
     operator fun invoke(): Flow<List<LocationModel>> {
-        return repository.getAllLocations()
+        return repository.getAllLocationsOrderedByDistance()
     }
 }

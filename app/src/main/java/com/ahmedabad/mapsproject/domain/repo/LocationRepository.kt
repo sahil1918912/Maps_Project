@@ -8,10 +8,12 @@ import kotlinx.coroutines.flow.Flow
 
 interface LocationRepository {
     fun getAllLocations(): Flow<List<LocationModel>>
+    fun getAllLocationsOrderedByDistance(): Flow<List<LocationModel>>
     suspend fun addLocation(location: LocationModel)
     suspend fun updateLocation(location: LocationModel)
     suspend fun deleteLocation(location: LocationModel)
     suspend fun getLocationById(id: Int): LocationModel?
+
     suspend fun searchPlaces(
         query: String,
         types: String? = null,
