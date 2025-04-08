@@ -50,19 +50,33 @@ class LocationListViewModel @Inject constructor(
     private fun loadLocations() {
         viewModelScope.launch {
             getAllLocationsUseCase().collectLatest { locations ->
-                val sorted = sortLocations(locations)
+                val sorted = applyDistanceSorting(locations)
                 _locations.value = sorted
 
                 val currentPrimary = _primaryLocation.value
                 if (currentPrimary == null || !sorted.any { it.id == currentPrimary.id }) {
                     _primaryLocation.value = sorted.firstOrNull { it.isPrimary }
                         ?: sorted.firstOrNull()?.also { loc ->
-                            // Only set as primary if there isn't one already
                             if (sorted.none { it.isPrimary }) {
                                 setPrimaryLocation(loc)
                             }
                         }
                 }
+            }
+        }
+    }
+
+    private fun applyDistanceSorting(locations: List<LocationModel>): List<LocationModel> {
+        val primary = _primaryLocation.value ?: return locations
+
+        return when (_sortOrder.value) {
+            SortOrder.ASCENDING -> locations.sortedBy { loc ->
+                if (loc.isPrimary) Double.MIN_VALUE
+                else calculateDistance(primary, loc)
+            }
+            SortOrder.DESCENDING -> locations.sortedByDescending { loc ->
+                if (loc.isPrimary) Double.MAX_VALUE
+                else calculateDistance(primary, loc)
             }
         }
     }
@@ -94,10 +108,7 @@ class LocationListViewModel @Inject constructor(
                 updateLocationUseCase(it)
             }
 
-
-            _locations.value = sortLocations(updatedLocations)
-
-
+            _locations.value = applyDistanceSorting(updatedLocations)
             _primaryLocation.value = updatedLocations.find { it.isPrimary }
         }
     }

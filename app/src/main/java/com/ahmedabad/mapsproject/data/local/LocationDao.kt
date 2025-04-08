@@ -19,7 +19,7 @@ interface LocationDao {
     @Delete
     suspend fun deleteLocation(location: LocationEntity)
 
-    @Query("SELECT * FROM locations ORDER BY name ASC")
+    @Query("SELECT * FROM locations")
     fun getAllLocations(): Flow<List<LocationEntity>>
 
     @Query("SELECT * FROM locations WHERE id = :id")

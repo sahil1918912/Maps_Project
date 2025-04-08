@@ -27,7 +27,6 @@ fun AppNavigation(navController: NavHostController) {
             )
         }
 
-        // In AppNavigation.kt
         composable(Destination.AddLocation.route) {
             val viewModel: LocationListViewModel = hiltViewModel()
             AddLocationScreen(
