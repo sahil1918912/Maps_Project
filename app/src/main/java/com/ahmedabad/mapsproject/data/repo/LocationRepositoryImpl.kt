@@ -27,6 +27,12 @@ class LocationRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun getAllLocationsOrderedByDistance(): Flow<List<LocationModel>> {
+        return locationDao.getAllLocationsOrderedByDistance().map { entities ->
+            entities.map { it.toLocationModel() }
+        }
+    }
+
     override suspend fun addLocation(location: LocationModel) {
         locationDao.insertLocation(location.toLocationEntity())
     }

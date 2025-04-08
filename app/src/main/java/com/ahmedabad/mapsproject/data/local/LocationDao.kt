@@ -22,6 +22,16 @@ interface LocationDao {
     @Query("SELECT * FROM locations")
     fun getAllLocations(): Flow<List<LocationEntity>>
 
+    @Query("""
+        SELECT * FROM locations ORDER BY 
+        CASE WHEN isPrimary THEN 0 ELSE 1 END,
+        (latitude - (SELECT latitude FROM locations WHERE isPrimary = 1 LIMIT 1)) * 
+        (latitude - (SELECT latitude FROM locations WHERE isPrimary = 1 LIMIT 1)) +
+        (longitude - (SELECT longitude FROM locations WHERE isPrimary = 1 LIMIT 1)) * 
+        (longitude - (SELECT longitude FROM locations WHERE isPrimary = 1 LIMIT 1))
+    """)
+    fun getAllLocationsOrderedByDistance(): Flow<List<LocationEntity>>
+
     @Query("SELECT * FROM locations WHERE id = :id")
     suspend fun getLocationById(id: Int): LocationEntity?
 }
